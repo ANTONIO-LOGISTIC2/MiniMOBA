@@ -1,0 +1,1040 @@
+/* ===================== GLOBAL RESET ===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===================== GAME CONTAINER ===================== */
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+#game-container.visible {
+  display: flex;
+}
+
+/* The canvas fills the viewport. Actual drawing resolution is
+   set in JS (game.js) to match window size for crispness. */
+#gameCanvas {
+  display: block;
+  background: #4a7d3a;
+  image-rendering: pixelated; /* keep placeholder sprites crisp when scaled */
+  cursor: crosshair; /* hints that left-click issues an attack */
+}
+
+/* ===================== UI OVERLAY ===================== */
+#ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* let clicks pass through to canvas/game */
+  padding: 16px;
+  color: #fff;
+}
+
+#ui-panel {
+  position: absolute;
+  top: 16px;
+  left: auto;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  min-width: 140px;
+}
+
+.ui-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ui-row span {
+  font-weight: bold;
+  color: #7ee0ff;
+}
+
+#controls-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: #ddd;
+}
+
+/* ===================== ANNOUNCEMENT BANNER ===================== */
+#banner {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd54f;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+#banner.visible {
+  opacity: 1;
+}
+
+/* ===================== SKILL BAR ===================== */
+#skill-bar {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+}
+
+#attack-button {
+  position: absolute;
+  bottom: 56px;
+  left: calc(50% + 128px);
+  width: 68px;
+  height: 68px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  background: radial-gradient(circle, #6b3030, #241316);
+  color: #fff3d2;
+  font: bold 11px 'Segoe UI', sans-serif;
+  letter-spacing: 0.8px;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 5;
+}
+
+#attack-button.charging {
+  border-color: #ffd45d;
+  box-shadow: 0 0 16px 5px rgba(255, 202, 69, 0.7);
+}
+
+#energy-bar {
+  position: absolute;
+  bottom: 132px;
+  left: calc(50% + 104px);
+  width: 116px;
+  height: 13px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 236, 165, 0.75);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff7d1;
+  font: bold 8px 'Segoe UI', sans-serif;
+  letter-spacing: 0.7px;
+  text-align: center;
+  line-height: 11px;
+  text-shadow: 0 1px 2px #000;
+}
+
+#energy-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: linear-gradient(90deg, #ef8d2f, #fff19b);
+  transition: width 0.08s linear;
+}
+
+#energy-bar span { position: relative; z-index: 1; }
+
+.skill-slot {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  background: rgba(20, 20, 25, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 4px;
+}
+
+.skill-slot.locked {
+  opacity: 0.4;
+}
+
+.skill-key {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  z-index: 3;
+}
+
+.skill-name {
+  font-size: 9px;
+  color: #ddd;
+  text-align: center;
+  line-height: 1.1;
+  z-index: 3;
+  padding: 0 3px;
+}
+
+/* Dark overlay that shrinks away (top to bottom) as the cooldown finishes. */
+.skill-cooldown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1;
+  transition: height 0.1s linear;
+}
+
+.skill-cooldown-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  z-index: 2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Pulsing gold highlight shown on Skill 1 while the free recast/dash is available. */
+.skill-slot.recast-ready {
+  border-color: #ffd54f;
+  animation: recast-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes recast-pulse {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(255, 213, 79, 0.5); }
+  50% { box-shadow: 0 0 12px 4px rgba(255, 213, 79, 0.9); }
+}
+
+/* ===================== MODE SELECT ===================== */
+#mode-select {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
+    linear-gradient(160deg, #14181f 0%, #0a0c10 60%, #000 100%);
+  color: #fff;
+  z-index: 100;
+}
+
+#mode-select.hidden {
+  display: none;
+}
+
+#mode-buttons {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mode-button {
+  appearance: none;
+  width: 220px;
+  padding: 24px 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.mode-button:hover {
+  border-color: rgba(255, 213, 79, 0.6);
+  background: rgba(255, 213, 79, 0.06);
+  transform: translateY(-2px);
+}
+
+.mode-button-title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ffd54f;
+  margin-bottom: 8px;
+}
+
+.mode-button-desc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #a9b8c6;
+}
+
+/* ===================== PVP CONNECT ===================== */
+#pvp-connect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
+    linear-gradient(160deg, #14181f 0%, #0a0c10 60%, #000 100%);
+  color: #fff;
+  z-index: 100;
+}
+
+#pvp-connect.hidden {
+  display: none;
+}
+
+.pvp-label {
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #9fb3c8;
+  margin: 12px 0 6px;
+}
+
+.pvp-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.pvp-input:focus {
+  border-color: rgba(255, 213, 79, 0.6);
+}
+
+#pvp-host-join-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 22px;
+}
+
+.pvp-action-button {
+  appearance: none;
+  flex: 1;
+  border: none;
+  padding: 13px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #14181f;
+  background: linear-gradient(180deg, #ffe082, #ffd54f);
+  border-radius: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 213, 79, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#pvp-join-confirm-button {
+  margin-top: 22px;
+}
+
+.pvp-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(255, 213, 79, 0.45);
+}
+
+.pvp-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+#pvp-join-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#pvp-join-row.hidden {
+  display: none;
+}
+
+#pvp-status {
+  min-height: 18px;
+  margin-top: 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #ef5350;
+}
+
+#pvp-status.pvp-status-ok {
+  color: #66bb6a;
+}
+
+.pvp-back-button {
+  appearance: none;
+  background: none;
+  border: none;
+  margin-top: 18px;
+  padding: 6px 10px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #9fb3c8;
+  cursor: pointer;
+}
+
+.pvp-back-button:hover {
+  color: #fff;
+}
+
+#pvp-wait-status {
+  margin: 15px 0 20px;
+  font-size: 13.5px;
+  text-align: center;
+  color: #ffd54f;
+  letter-spacing: 0.5px;
+}
+
+#pvp-wait-status.hidden {
+  display: none;
+}
+
+/* ===================== MAIN MENU ===================== */
+#main-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
+    linear-gradient(160deg, #14181f 0%, #0a0c10 60%, #000 100%);
+  color: #fff;
+  z-index: 100;
+}
+
+#main-menu.hidden {
+  display: none;
+}
+
+.menu-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+  width: min(640px, 92vw);
+}
+
+.game-title {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-align: center;
+  color: #eaf6ff;
+  text-shadow: 0 2px 12px rgba(126, 224, 255, 0.35);
+  margin-bottom: 6px;
+}
+
+.game-title span {
+  color: #ffd54f;
+  text-shadow: 0 2px 12px rgba(255, 213, 79, 0.45);
+}
+
+.menu-subtitle {
+  color: #9fb3c8;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+#character-select {
+  display: flex;
+  gap: 18px;
+  width: 100%;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.character-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 190px;
+  padding: 16px 14px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.character-card:hover {
+  border-color: rgba(126, 224, 255, 0.55);
+  transform: translateY(-2px);
+}
+
+.character-card.selected {
+  border-color: #ffd54f;
+  background: rgba(255, 213, 79, 0.08);
+  box-shadow: 0 0 16px rgba(255, 213, 79, 0.25);
+}
+
+.character-portrait {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 10px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 384px 384px; /* 256px sheet scaled 1.5x so one 64px frame fills 96px */
+  image-rendering: pixelated;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.character-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.character-card.selected .character-name {
+  color: #ffd54f;
+}
+
+.character-desc {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #a9b8c6;
+  text-align: center;
+}
+
+#start-button {
+  appearance: none;
+  border: none;
+  padding: 14px 56px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #14181f;
+  background: linear-gradient(180deg, #ffe082, #ffd54f);
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 213, 79, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(255, 213, 79, 0.5);
+}
+
+#start-button:active {
+  transform: translateY(0);
+}
+
+.menu-controls-hint {
+  margin-top: 22px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #7c8b9a;
+  text-align: center;
+}
+
+/* ===================== GAME RESULTS ===================== */
+#game-results {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
+    linear-gradient(160deg, rgba(20, 24, 31, 0.97) 0%, rgba(10, 12, 16, 0.98) 60%, rgba(0, 0, 0, 0.99) 100%);
+  color: #fff;
+  z-index: 200;
+}
+
+#game-results.hidden {
+  display: none;
+}
+
+.results-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 32px;
+  width: min(560px, 92vw);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.results-title {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+}
+
+.results-title.victory {
+  color: #ffd54f;
+  text-shadow: 0 2px 16px rgba(255, 213, 79, 0.45);
+}
+
+.results-title.defeat {
+  color: #ef5350;
+  text-shadow: 0 2px 16px rgba(239, 83, 80, 0.4);
+}
+
+.results-subtitle {
+  color: #9fb3c8;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+#results-teams {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 32px;
+  justify-content: center;
+}
+
+.results-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 190px;
+  padding: 18px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+}
+
+.results-team-player {
+  border-color: rgba(66, 165, 245, 0.5);
+}
+
+.results-team-enemy {
+  border-color: rgba(239, 83, 80, 0.5);
+}
+
+.results-team-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #cfd8e3;
+  margin-bottom: 10px;
+}
+
+.results-hero-portrait {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 12px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 288px 288px; /* same 4x zoom on a 64px frame as the character-select portraits */
+  image-rendering: pixelated;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.results-kda {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.results-kda-sep {
+  color: #6b7a8a;
+  margin: 0 2px;
+}
+
+.results-kda-caption {
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  color: #7c8b9a;
+  text-transform: uppercase;
+}
+
+.results-vs {
+  font-size: 14px;
+  font-weight: 800;
+  color: #6b7a8a;
+  letter-spacing: 1px;
+}
+
+#results-continue-button {
+  appearance: none;
+  border: none;
+  padding: 14px 56px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #14181f;
+  background: linear-gradient(180deg, #ffe082, #ffd54f);
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 213, 79, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#results-continue-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(255, 213, 79, 0.5);
+}
+
+#results-continue-button:active {
+  transform: translateY(0);
+}
+
+/* Rematch - PVP only (hidden otherwise), secondary/outlined styling so
+   it doesn't compete with Continue as the primary action. */
+#results-rematch-button {
+  appearance: none;
+  border: 2px solid rgba(255, 213, 79, 0.6);
+  padding: 12px 54px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #ffe082;
+  background: transparent;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+#results-rematch-button:hover:not(:disabled) {
+  background: rgba(255, 213, 79, 0.12);
+  transform: translateY(-2px);
+}
+
+#results-rematch-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+#results-rematch-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+#results-rematch-button.hidden {
+  display: none;
+}
+
+#results-rematch-status {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #9fb3c8;
+  text-align: center;
+}
+
+#results-rematch-status.hidden {
+  display: none;
+}
+
+/* Minimap: upper-left, both PC and Android modes. */
+#minimap {
+  display: block;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 140px;
+  height: 140px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 6;
+}
+
+#minimap-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Surrender: directly under the minimap, upper-left of the screen. */
+#surrender-button {
+  position: absolute;
+  top: 164px;
+  left: 16px;
+  z-index: 6;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(140, 20, 20, 0.75);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  pointer-events: auto; /* #ui-overlay disables this by default - without it the button is unclickable */
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+#surrender-button:hover {
+  background: rgba(180, 30, 30, 0.9);
+}
+
+#surrender-button:active {
+  transform: translateY(1px);
+}
+
+/* Scoreboard: upper-middle, kills only ("YOU" in blue vs "ENEMY" in
+   red, matching the same team colors used everywhere else - minimap,
+   creep dots, health bars). Purely informational, so it stays
+   click-through like the rest of #ui-overlay. */
+#scoreboard {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.scoreboard-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scoreboard-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.scoreboard-you .scoreboard-dot {
+  background: #42a5f5;
+}
+
+.scoreboard-enemy .scoreboard-dot {
+  background: #ef5350;
+}
+
+.scoreboard-divider {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+}
+
+body.mobile-mode #scoreboard {
+  font-size: 14px;
+  padding: 6px 12px;
+  gap: 8px;
+}
+
+/* ===================== MOBILE CONTROLS (Android layout) ===================== */
+/* Hidden by default; body.mobile-mode is toggled by input.js based on
+   touch capability + viewport size (true both on real phones and when
+   Chrome DevTools' device toolbar - Ctrl+Shift+M - is active). */
+
+#joystick-base,
+#recall-button-mobile {
+  display: none;
+}
+
+/* On the mobile layout the stats panel gets smaller, on top of moving
+   to the upper-right (which now happens in both modes - see #ui-panel). */
+body.mobile-mode #ui-panel {
+  font-size: 11px;
+  padding: 6px 10px;
+  min-width: 0;
+}
+
+body.mobile-mode #joystick-base {
+  display: block;
+  position: absolute;
+  left: 36px;
+  bottom: 36px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  pointer-events: auto;
+  touch-action: none;
+  z-index: 6;
+}
+
+body.mobile-mode #joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.85), rgba(200, 210, 220, 0.55));
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+/* Basic attack is the anchor for the Android action cluster: keep it at
+   the lowest usable point on the right, accounting for phone safe areas. */
+body.mobile-mode #attack-button {
+  left: auto;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: 96px;
+  height: 96px;
+  font-size: 13px;
+  z-index: 6;
+}
+
+body.mobile-mode #energy-bar {
+  left: auto;
+  right: 16px;
+  bottom: 122px;
+  width: 120px;
+}
+
+/* Skills form a touch-friendly fan around the attack button: left,
+   upper-left, and directly above it. */
+body.mobile-mode #skill-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: none;
+  pointer-events: none;
+  z-index: 6;
+}
+
+body.mobile-mode .skill-slot {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  pointer-events: auto;
+}
+
+body.mobile-mode #skill-slot-1 {
+  right: max(128px, calc(env(safe-area-inset-right) + 128px));
+  bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+body.mobile-mode #skill-slot-2 {
+  right: max(141px, calc(env(safe-area-inset-right) + 141px));
+  bottom: max(105px, calc(env(safe-area-inset-bottom) + 105px));
+}
+
+body.mobile-mode #skill-slot-3 {
+  right: max(26px, calc(env(safe-area-inset-right) + 26px));
+  bottom: max(142px, calc(env(safe-area-inset-bottom) + 142px));
+}
+
+/* Recall: lower-middle of the screen, to the left of the skill arc. */
+body.mobile-mode #recall-button-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: absolute;
+  right: 300px;
+  bottom: 30px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 213, 79, 0.6);
+  background: radial-gradient(circle, rgba(60, 45, 10, 0.9), rgba(20, 15, 5, 0.9));
+  color: #ffd54f;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 6;
+}
+
+.mobile-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.mobile-btn-label {
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* The keyboard-oriented hint and coordinate readout aren't useful on
+   a touch layout - hide the hint. */
+body.mobile-mode #controls-hint {
+  display: none;
+}
