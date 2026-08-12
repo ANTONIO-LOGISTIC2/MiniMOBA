@@ -255,6 +255,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
     linear-gradient(160deg, #14181f 0%, #0a0c10 60%, #000 100%);
@@ -317,6 +319,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
     linear-gradient(160deg, #14181f 0%, #0a0c10 60%, #000 100%);
@@ -453,6 +457,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
     linear-gradient(160deg, #14181f 0%, #0a0c10 60%, #000 100%);
@@ -468,8 +474,16 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* margin: auto (not the parent's align-items: center) does the vertical
+     centering here. This way, if the content is taller than the screen
+     (short landscape phones), the flex parent's own overflow-y: auto can
+     scroll all the way to the real top of the content instead of clipping
+     it — a plain align-items: center on an overflowing flex child cannot
+     be scrolled past on many browsers/WebViews. */
+  margin: auto;
   padding: 40px 24px;
   width: min(640px, 92vw);
+  max-width: 100%;
 }
 
 .game-title {
@@ -601,6 +615,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at 50% 20%, rgba(126, 224, 255, 0.10), transparent 55%),
     linear-gradient(160deg, rgba(20, 24, 31, 0.97) 0%, rgba(10, 12, 16, 0.98) 60%, rgba(0, 0, 0, 0.99) 100%);
@@ -616,8 +632,10 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: auto; /* see .menu-inner comment: keeps content scrollable-to-top if it overflows a short viewport */
   padding: 40px 32px;
   width: min(560px, 92vw);
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -1037,4 +1055,123 @@ body.mobile-mode #recall-button-mobile {
    a touch layout - hide the hint. */
 body.mobile-mode #controls-hint {
   display: none;
+}
+
+/* ===================== RESPONSIVE MENU SCALING ===================== */
+/* Menu/results screens (mode select, PVP connect, hero select, results) are
+   centered with a fixed padding/font/card size that was tuned for a normal
+   desktop-height window. On short landscape viewports (most phones in
+   landscape, especially in the fullscreen/immersive Android WebView) the
+   viewport height can be well under 450px, so that content is taller than
+   the screen. The overflow-y: auto + margin: auto added above lets it
+   scroll instead of clip as a safety net, but the real fix is to shrink the
+   menu chrome so everything fits on screen without scrolling in the first
+   place. Only spacing/type/portrait sizes are scaled down here - no menu
+   is restructured, no button/card is removed, and gameplay/#game-container
+   is untouched. */
+@media (max-height: 520px) {
+  .menu-inner,
+  .results-inner {
+    padding: 14px 20px;
+  }
+
+  .game-title {
+    font-size: 24px;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+
+  .menu-subtitle,
+  .results-subtitle {
+    font-size: 10.5px;
+    margin-bottom: 10px;
+  }
+
+  /* Character select (AI mode + PVP mode share this markup) */
+  #character-select {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .character-card {
+    width: 122px;
+    padding: 8px 8px 10px;
+  }
+
+  .character-portrait {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 6px;
+    background-size: 224px 224px; /* same 64px-frame-to-56px-box ratio as the default 384px/96px sizing */
+  }
+
+  .character-name {
+    font-size: 12.5px;
+    margin-bottom: 3px;
+  }
+
+  .character-desc {
+    font-size: 9.5px;
+    line-height: 1.25;
+  }
+
+  #start-button {
+    padding: 9px 36px;
+    font-size: 15px;
+  }
+
+  .menu-controls-hint {
+    margin-top: 8px;
+    font-size: 9.5px;
+  }
+
+  .pvp-back-button,
+  #main-menu-back-button {
+    margin-top: 8px;
+  }
+
+  /* PVP connect / Join match / Host match / Room code */
+  .pvp-label {
+    margin: 8px 0 4px;
+  }
+
+  .pvp-input {
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  #pvp-host-join-row {
+    margin-top: 12px;
+  }
+
+  #pvp-join-confirm-button {
+    margin-top: 12px;
+  }
+
+  #pvp-wait-status {
+    margin: 8px 0 10px;
+  }
+
+  /* Match results */
+  .results-title {
+    font-size: 26px;
+    margin-bottom: 2px;
+  }
+
+  #results-teams {
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .results-team {
+    width: 132px;
+    padding: 10px 8px;
+  }
+
+  .results-hero-portrait {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    background-size: 192px 192px; /* same ratio as the default 288px/72px sizing */
+  }
 }
