@@ -950,8 +950,8 @@ body.mobile-mode #joystick-knob {
    the lowest usable point on the right, accounting for phone safe areas. */
 body.mobile-mode #attack-button {
   left: auto;
-  right: max(10px, env(safe-area-inset-right));
-  bottom: max(10px, env(safe-area-inset-bottom));
+  right: max(10px, var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  bottom: max(10px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
   width: 96px;
   height: 96px;
   font-size: 13px;
@@ -987,18 +987,18 @@ body.mobile-mode .skill-slot {
 }
 
 body.mobile-mode #skill-slot-1 {
-  right: max(128px, calc(env(safe-area-inset-right) + 128px));
-  bottom: max(12px, env(safe-area-inset-bottom));
+  right: max(128px, calc(var(--safe-area-inset-right, env(safe-area-inset-right, 0px)) + 128px));
+  bottom: max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
 }
 
 body.mobile-mode #skill-slot-2 {
-  right: max(141px, calc(env(safe-area-inset-right) + 141px));
-  bottom: max(105px, calc(env(safe-area-inset-bottom) + 105px));
+  right: max(141px, calc(var(--safe-area-inset-right, env(safe-area-inset-right, 0px)) + 141px));
+  bottom: max(105px, calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 105px));
 }
 
 body.mobile-mode #skill-slot-3 {
-  right: max(26px, calc(env(safe-area-inset-right) + 26px));
-  bottom: max(142px, calc(env(safe-area-inset-bottom) + 142px));
+  right: max(26px, calc(var(--safe-area-inset-right, env(safe-area-inset-right, 0px)) + 26px));
+  bottom: max(142px, calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 142px));
 }
 
 /* Recall: lower-middle of the screen, to the left of the skill arc. */

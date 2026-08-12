@@ -282,13 +282,28 @@ class InputHandler {
 
   /**
    * Switches the whole UI into the touch-friendly Android-style layout
-   * (joystick + arc of skill buttons around a big attack button)
-   * whenever the browser reports a coarse pointer (a real touchscreen,
-   * or Chrome DevTools' device toolbar / Ctrl+Shift+M) alongside a
-   * phone-ish viewport width. Desktop mouse users keep the original
-   * keyboard-oriented HUD untouched.
+   * (joystick + arc of skill buttons around a big attack button).
+   *
+   * Inside the packaged Android app (detected via the Capacitor bridge)
+   * this is unconditional - it's a touch-only device by definition,
+   * regardless of screen size or aspect ratio, so a big tablet in
+   * landscape still gets the touch HUD instead of falling through to
+   * the desktop layout.
+   *
+   * In a regular browser (testing on desktop, or the LAN/online web
+   * build), fall back to the previous heuristic: a coarse pointer (a
+   * real touchscreen, or Chrome DevTools' device toolbar / Ctrl+Shift+M)
+   * alongside a phone-ish viewport width. Desktop mouse users keep the
+   * original keyboard-oriented HUD untouched.
    */
   _detectMobileMode() {
+    const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+    if (isNativeApp) {
+      document.body.classList.add('mobile-mode');
+      return;
+    }
+
     const hasTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
     const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
     const isNarrow = window.innerWidth <= 1080;
