@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini MOBA - Phase 1</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== MODE SELECT ===================== -->
+  <div id="mode-select">
+    <div class="menu-inner">
+      <h1 class="game-title">MINI <span>MOBA</span></h1>
+      <p class="menu-subtitle">Choose a mode</p>
+
+      <div id="mode-buttons">
+        <button class="mode-button" id="mode-ai-button" type="button">
+          <div class="mode-button-title">AI Mode</div>
+          <div class="mode-button-desc">Solo vs a bot on this device</div>
+        </button>
+        <button class="mode-button" id="mode-pvp-button" type="button">
+          <div class="mode-button-title">PVP Mode</div>
+          <div class="mode-button-desc">1v1 vs a real player, any device</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PVP CONNECT ===================== -->
+  <div id="pvp-connect" class="hidden">
+    <div class="menu-inner">
+      <h1 class="game-title">MINI <span>MOBA</span></h1>
+      <p class="menu-subtitle">PVP - connect to a match</p>
+
+      <label class="pvp-label" for="pvp-server-url">Server address</label>
+      <input id="pvp-server-url" class="pvp-input" type="text" value="ws://localhost:8080" spellcheck="false">
+
+      <div id="pvp-host-join-row">
+        <button id="pvp-host-button" class="pvp-action-button" type="button">Host Match</button>
+        <button id="pvp-join-button" class="pvp-action-button" type="button">Join Match</button>
+      </div>
+
+      <div id="pvp-join-row" class="hidden">
+        <label class="pvp-label" for="pvp-room-code">Room code</label>
+        <input id="pvp-room-code" class="pvp-input" type="text" maxlength="5" placeholder="ABCDE" spellcheck="false" autocapitalize="characters">
+        <button id="pvp-join-confirm-button" class="pvp-action-button" type="button">Connect</button>
+      </div>
+
+      <p id="pvp-status"></p>
+
+      <button id="pvp-back-button" class="pvp-back-button" type="button">&larr; Back</button>
+    </div>
+  </div>
+
+  <!-- ===================== MAIN MENU ===================== -->
+  <div id="main-menu" class="hidden">
+    <div class="menu-inner">
+      <h1 class="game-title">MINI <span>MOBA</span></h1>
+      <p class="menu-subtitle">Choose your hero</p>
+
+      <div id="character-select">
+        <div class="character-card selected" data-character="gusion" data-sprite="assets/player/gusion.png" tabindex="0">
+          <div class="character-portrait" style="background-image: url('assets/player/gusion.png');"></div>
+          <div class="character-name">Gusion</div>
+          <div class="character-desc">Twin-blade assassin &mdash; throw, wave, and blink your way through fights.</div>
+        </div>
+        <div class="character-card" data-character="hayabusa" data-sprite="assets/player/hayabusa.png" tabindex="0">
+          <div class="character-portrait" style="background-image: url('assets/player/hayabusa.png');"></div>
+          <div class="character-name">Hayabusa</div>
+          <div class="character-desc">Shadow ninja &mdash; same deadly kit, a different blade to master.</div>
+        </div>
+        <div class="character-card" data-character="benedetta" data-sprite="assets/player/benedetta.png" tabindex="0">
+          <div class="character-portrait" style="background-image: url('assets/player/benedetta.png');"></div>
+          <div class="character-name">Benedetta</div>
+          <div class="character-desc">Blade dancer &mdash; swift strikes with the same lethal skill set.</div>
+        </div>
+        <div class="character-card" data-character="chou" data-sprite="assets/player/chou.png" tabindex="0">
+          <div class="character-portrait" style="background-image: url('assets/player/chou.png');"></div>
+          <div class="character-name">Chou</div>
+          <div class="character-desc">Kung-fu fighter &mdash; chain strikes, dash through danger, and kick enemies away.</div>
+        </div>
+      </div>
+
+      <button id="start-button">START</button>
+      <p id="pvp-wait-status" class="hidden"></p>
+
+      <button id="main-menu-back-button" class="pvp-back-button">&larr; Back</button>
+
+      <div class="menu-controls-hint">Move: WASD &nbsp;|&nbsp; Attack: Click / Space &nbsp;|&nbsp; Skills: 1 2 3 &nbsp;|&nbsp; Recall: B</div>
+    </div>
+  </div>
+
+  <!-- ===================== GAME RESULTS ===================== -->
+  <div id="game-results" class="hidden">
+    <div class="results-inner">
+      <h1 id="results-title" class="results-title">Victory!</h1>
+      <p class="results-subtitle">Match Summary</p>
+
+      <div id="results-teams">
+        <div class="results-team results-team-player">
+          <div class="results-team-label">Your Team</div>
+          <div id="results-player-portrait" class="results-hero-portrait"></div>
+          <div class="results-kda">
+            <span id="results-player-kills">0</span><span class="results-kda-sep">/</span><span id="results-player-deaths">0</span><span class="results-kda-sep">/</span><span id="results-player-assists">0</span>
+          </div>
+          <div class="results-kda-caption">Kills / Deaths / Creeps Kills</div>
+        </div>
+
+        <div class="results-vs">VS</div>
+
+        <div class="results-team results-team-enemy">
+          <div class="results-team-label">Enemy Team</div>
+          <div id="results-enemy-portrait" class="results-hero-portrait"></div>
+          <div class="results-kda">
+            <span id="results-enemy-kills">0</span><span class="results-kda-sep">/</span><span id="results-enemy-deaths">0</span><span class="results-kda-sep">/</span><span id="results-enemy-assists">0</span>
+          </div>
+          <div class="results-kda-caption">Kills / Deaths / Creeps Kills</div>
+        </div>
+      </div>
+
+      <button id="results-continue-button">CONTINUE</button>
+      <button id="results-rematch-button" class="hidden">REMATCH</button>
+      <div id="results-rematch-status" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Main game container -->
+  <div id="game-container">
+
+    <!-- The canvas where everything is drawn -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- UI overlay: shows coordinates, FPS, etc. -->
+    <div id="ui-overlay">
+      <div id="banner"></div>
+
+      <!-- Mobile-only minimap (desktop relies on the X/Y readout instead) -->
+      <div id="minimap">
+        <canvas id="minimap-canvas" width="140" height="140"></canvas>
+      </div>
+
+      <!-- Upper-middle: kills-only scoreboard, visible to both host and guest. -->
+      <div id="scoreboard">
+        <span class="scoreboard-side scoreboard-you">
+          <span class="scoreboard-dot"></span>
+          <span id="scoreboard-player-kills">0</span>
+        </span>
+        <span class="scoreboard-divider">–</span>
+        <span class="scoreboard-side scoreboard-enemy">
+          <span id="scoreboard-enemy-kills">0</span>
+          <span class="scoreboard-dot"></span>
+        </span>
+      </div>
+
+      <!-- Directly under the minimap, upper-left of the screen - forfeits the match. -->
+      <button id="surrender-button" type="button">Surrender</button>
+
+      <div id="ui-panel">
+        <div class="ui-row">FPS: <span id="fps-value">0</span></div>
+        <div class="ui-row">Time: <span id="game-time">00:00</span></div>
+        <div class="ui-row">X: <span id="player-x">0</span></div>
+        <div class="ui-row">Y: <span id="player-y">0</span></div>
+        <div class="ui-row">HP: <span id="player-hp">1000</span> / <span id="player-max-hp">1000</span></div>
+        <div class="ui-row">KDA: <span id="player-kda">0/0/0</span></div>
+        <div class="ui-row">Recall: <span id="recall-status">Ready</span></div>
+      </div>
+
+      <div id="skill-bar">
+        <div class="skill-slot" id="skill-slot-1">
+          <span class="skill-key">1</span>
+          <span class="skill-name">Blade Throw</span>
+          <div class="skill-cooldown-overlay" id="skill-overlay-1"></div>
+          <span class="skill-cooldown-text" id="skill-text-1"></span>
+        </div>
+        <div class="skill-slot" id="skill-slot-2">
+          <span class="skill-key">2</span>
+          <span class="skill-name">Sword Waves</span>
+          <div class="skill-cooldown-overlay" id="skill-overlay-2"></div>
+          <span class="skill-cooldown-text" id="skill-text-2"></span>
+        </div>
+        <div class="skill-slot" id="skill-slot-3">
+          <span class="skill-key">3</span>
+          <span class="skill-name">Blade Dance</span>
+          <div class="skill-cooldown-overlay" id="skill-overlay-3"></div>
+          <span class="skill-cooldown-text" id="skill-text-3"></span>
+        </div>
+      </div>
+
+      <button id="attack-button" type="button" aria-label="Basic attack">ATTACK</button>
+      <div id="energy-bar" aria-label="Benedetta Energy"><div id="energy-bar-fill"></div><span>ENERGY</span></div>
+
+      <!-- Mobile-only virtual joystick (movement) -->
+      <div id="joystick-base" aria-label="Move">
+        <div id="joystick-knob"></div>
+      </div>
+
+      <!-- Mobile-only recall button (desktop uses the B key) -->
+      <button id="recall-button-mobile" type="button" aria-label="Recall">
+        <span class="mobile-btn-icon">&#8635;</span>
+        <span class="mobile-btn-label">Recall</span>
+      </button>
+
+      <div id="controls-hint">Move: W A S D &nbsp;|&nbsp; Attack: Left Click / Space</div>
+    </div>
+
+  </div>
+
+  <!-- Load scripts in dependency order.
+       Each file defines classes/objects on the global scope (no modules/bundlers used). -->
+  <script src="js/input.js?v=2"></script>
+  <script src="js/animation.js?v=2"></script>
+  <script src="js/collision.js?v=2"></script>
+  <script src="js/combat.js?v=2"></script>
+  <script src="js/camera.js?v=2"></script>
+  <script src="js/player.js?v=2"></script>
+  <script src="js/enemy.js?v=2"></script>
+  <script src="js/creep.js?v=2"></script>
+  <script src="js/tower.js?v=2"></script>
+  <script src="js/skill.js?v=2"></script>
+  <script src="js/ui.js?v=2"></script>
+  <script src="js/game.js?v=2"></script>
+  <script src="js/network.js?v=2"></script>
+  <script src="js/pvp-guest.js?v=2"></script>
+  <script src="js/mainmenu.js?v=2"></script>
+</body>
+</html>
