@@ -1,0 +1,15 @@
+{
+  "name": "mini-moba-relay",
+  "version": "1.0.0",
+  "description": "Dumb WebSocket relay for Mini MOBA PvP matchmaking - no game logic, just forwards messages between two paired clients.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
